@@ -33,18 +33,25 @@
 #define COL PORTBbits.RB6 // led para sinalizar colisao
 
 int conta = 0;
+int energ = 0;
+int temp = 0;
+int rad = 0;
+int flag;
 const unsigned char exemplo_imagem[1024] = {0};
+
+int ler_an(int canal);
 
 void main(void) {
     OPTION_REG =0b00111111; // Ativa os pull-ups.
     TRISB = 0b00000111; // RB0, RB1, RB2 = entrada e RB3-RB7 = saída
+    TRISA = 0b00000111;
     INTCON = 0b10010000; // Ativando a interrupção externa.
 
     // Inicializa as saídas RB3 até RB6 em 0
-    PORTBbits.RB3 = 0; 
-    PORTBbits.RB4 = 0;
-    PORTBbits.RB5 = 0;
-    PORTBbits.RB6 = 0;
+    LED_EM = 0; 
+    PRE_AC = 0;
+    LHC = 0;
+    COL = 0;
     
     //** configurando interrup��es ***********************************
    INTCONbits.GIE=1;       //Habiliita a int global
@@ -58,14 +65,42 @@ void main(void) {
         
    TMR1L = 0xDC;          //carga do valor inicial no contador (65536-62500)
    TMR1H = 0x0B;          //3036. Quando estourar contou 62500, passou 0,5s   
+   
+   ADCON1bits.PCFG0   = 0;  //configura as entradas anal�gicas
+   ADCON1bits.PCFG1   = 1;  //configura as entradas anal�gicas
+   ADCON1bits.PCFG2   = 1;  //configura as entradas anal�gicas
+   ADCON1bits.PCFG3   = 1;  //configura as entradas anal�gicas
+   
+   ADCON0bits.ADCS1 = 0;
+   ADCON0bits.ADCS0 = 1;
+   
+   ADCON1bits.ADFM = 1;
+   
+   //inicializa registradores do AD
+   ADRESL = 0x00;          //inicializar valor anal?gico com 0
+   ADRESH = 0x00;          
+   
+   ADCON0bits.ADON = 1;     //Liga AD
 
+   glcd_init();
+   glcd_clear();
+   
+   flag = 0;
     
-    while(1){
+    while(1)
+    {
         // Se os sensores de feixes de prótons estiverem ativos, iniciamos o processo de aceleração.
-        if (SN_X == 0 && SN_Y == 0)
+        if (SN_X == 0 && SN_Y == 0 && flag==0) 
         {
-            // Acende LED dos pré-aceleradores apos 5s
-            T1CONbits.TMR1ON = 1;
+            T1CONbits.TMR1ON = 1; // acende pre acelerador
+            flag = 1;
+        }  
+        
+        if(flag==1)
+        {
+            energ = ler_an(2);
+            __delay_ms(5000);
+            if(energ>300) PRE_AC = 0;
         }
         
     }
@@ -117,9 +152,11 @@ void __interrupt() TrataInt(void)
         
         //comandos pra tratar a interrup��o
         conta++;
-        //conta == 7 passou 5s
-        if (conta==7){
-            PRE_AC = 1;         
+        //conta == 8 passou 5s
+        if (conta==8){
+            PRE_AC = 1; 
+            LHC = 0;
+            COL = 0;
             conta = 0;
         }
   }
@@ -138,4 +175,11 @@ void __interrupt() TrataInt(void)
         }
         LED_EM = 0; // Desligar led de emergência.
     }
+}
+int ler_an(int canal) 
+{
+    ADCON0bits.CHS = canal; 
+    ADCON0bits.GO = 1;   
+     __delay_us(100);                              
+    return ((ADRESH << 8) + ADRESL) / 2;
 }
