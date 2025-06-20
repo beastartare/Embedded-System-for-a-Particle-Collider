@@ -199,7 +199,7 @@ void mostrar_energia() {
     glcd_write_string("               ", 0, 0); // Limpa a linha 1 inteira (15 espaços)
 
     // Converte o valor_energia para string.
-    sprintf(buffer, "%d um", valor_energia); 
+    sprintf(buffer, "%d kWh", valor_energia); 
     
     // Exibe o texto "ENERGIA:"
     glcd_write_string("ENERGIA:", 0, 0); 
