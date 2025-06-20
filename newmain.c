@@ -1,7 +1,8 @@
 /*
- * File:   newmain.C
- * Author: Beatriz e Maria Eduarda
+ * File:   newmain.c
+ * Author: Usuario
  *
+ * Created on 19 de Junho de 2025, 15:55
  */
 
 // https://github.com/kwiecinski/PIC-XC8-KS0108-NT7108-LCD-LIBRARY/blob/master/Files/KS0108.h
@@ -37,15 +38,17 @@ int energ = 0;
 int temp = 0;
 int rad = 0;
 int flag;
+int flag_entrou_pre_ac = 0; // Essa flag só deixa as particulas entrarem nos pre-aceleradores uma vez no processo.
+
 const unsigned char exemplo_imagem[1024] = {0};
 
 int ler_an(int canal);
+void mostrar_energia();
 
 void main(void) {
     OPTION_REG =0b00111111; // Ativa os pull-ups.
     TRISB = 0b00000111; // RB0, RB1, RB2 = entrada e RB3-RB7 = saída
     TRISA = 0b00000111;
-    INTCON = 0b10010000; // Ativando a interrupção externa.
 
     // Inicializa as saídas RB3 até RB6 em 0
     LED_EM = 0; 
@@ -54,53 +57,62 @@ void main(void) {
     COL = 0;
     
     //** configurando interrup��es ***********************************
-   INTCONbits.GIE=1;       //Habiliita a int global
-   INTCONbits.PEIE = 1;    //Habilita a int dos perif�ricos
-   PIE1bits.TMR1IE = 1;    //Habilita int do timer 1
-   
-   //*** configura o timer 1 *****************************************
-   T1CONbits.TMR1CS = 0;   //Define timer 1 como temporizador (Fosc/4)
-   T1CONbits.T1CKPS0 = 1;  //bit pra configurar pre-escaler, nesta caso 1:8
-   T1CONbits.T1CKPS1 = 1;  //bit pra configurar pre-escaler, nesta caso 1:8
-        
-   TMR1L = 0xDC;          //carga do valor inicial no contador (65536-62500)
-   TMR1H = 0x0B;          //3036. Quando estourar contou 62500, passou 0,5s   
-   
-   ADCON1bits.PCFG0   = 0;  //configura as entradas anal�gicas
-   ADCON1bits.PCFG1   = 1;  //configura as entradas anal�gicas
-   ADCON1bits.PCFG2   = 1;  //configura as entradas anal�gicas
-   ADCON1bits.PCFG3   = 1;  //configura as entradas anal�gicas
-   
-   ADCON0bits.ADCS1 = 0;
-   ADCON0bits.ADCS0 = 1;
-   
-   ADCON1bits.ADFM = 1;
-   
-   //inicializa registradores do AD
-   ADRESL = 0x00;          //inicializar valor anal?gico com 0
-   ADRESH = 0x00;          
-   
-   ADCON0bits.ADON = 1;     //Liga AD
-
-   glcd_init();
-   glcd_clear();
-   
-   flag = 0;
+    INTCONbits.GIE=1;       //Habiliita a int global
+    INTCONbits.PEIE = 1;    //Habilita a int dos perif�ricos
+    INTCONbits.INTE = 1;     // interrupção externa (RB0)
+    PIE1bits.TMR1IE = 1;    //Habilita int do timer 1
     
-    while(1)
-    {
+    //*** configura o timer 1 *****************************************
+    T1CONbits.TMR1CS = 0;   //Define timer 1 como temporizador (Fosc/4).
+    // Obs.: sabendo que nosso PIC é 4MHz, Fosc/4 = 1MHz. Isso significa que, em 1s, contaria 1000000 pulsos.
+    T1CONbits.T1CKPS0 = 1;  //bit pra configurar pre-escaler, neste caso 1:8
+    T1CONbits.T1CKPS1 = 1;  //bit pra configurar pre-escaler, neste caso 1:8.
+    // Obs.: agora, temos 1000000/8 = 125000 contagens por segundo. Ou seja, 1 contagem a cada 8 microssegundos.
+        
+    // Timer 1 é de 16 bits. Vai de 0 até 65535.
+    TMR1L = 0xDC;          //carga do valor inicial no contador (65536-62500)
+    TMR1H = 0x0B;          //3036. Quando estourar contou 62500, passou 0,5s   
+
+    //*** Configura entradas analógicas *****************************************
+    ADCON1bits.PCFG0   = 0;
+    ADCON1bits.PCFG1   = 1;
+    ADCON1bits.PCFG2   = 1;
+    ADCON1bits.PCFG3   = 1;
+
+    ADCON0bits.ADCS1 = 0;
+    ADCON0bits.ADCS0 = 1;
+
+    ADCON1bits.ADFM = 1;
+
+    //inicializa registradores do AD
+    ADRESL = 0x00;          //inicializar valor anal?gico com 0
+    ADRESH = 0x00;          
+
+    ADCON0bits.ADON = 1;     //Liga AD
+
+    glcd_init();
+    glcd_clear();
+
+    flag = 0;
+    
+    while(1){
         // Se os sensores de feixes de prótons estiverem ativos, iniciamos o processo de aceleração.
-        if (SN_X == 0 && SN_Y == 0 && flag==0) 
+        if (SN_X == 0 && SN_Y == 0 && flag==0)
         {
-            T1CONbits.TMR1ON = 1; // acende pre acelerador
+            T1CONbits.TMR1ON = 1; // acende pre acelerador se particulas ainda nao estiveram passado por la.
             flag = 1;
-        }  
+        }
         
         if(flag==1)
         {
             energ = ler_an(2);
+            mostrar_energia();
             __delay_ms(5000);
-            if(energ>300) PRE_AC = 0;
+            if(energ>600) 
+            {
+                PRE_AC = 0; // Sai dos pré-aceleradores
+                LHC = 1; // Entra no LHC
+            }
         }
         
     }
@@ -110,15 +122,6 @@ void main(void) {
     // Pequeno atraso na inicialização para estabilização da fonte/PIC
     // Especialmente útil em simulações ou hardware real
     __delay_ms(100);
-
-    // Inicializa o GLCD
-    glcd_init();
-
-    // Limpa o display
-    glcd_clear();
-
-    // Atraso para ver o clear (opcional)
-    __delay_ms(500);
 
     // Teste de escrita de caracteres individuais (agora pode ser qualquer um)
     glcd_draw_char('A', 0, 0);
@@ -150,10 +153,11 @@ void __interrupt() TrataInt(void)
         TMR1L = 0xDC;        //reinicia contagem com 3036
         TMR1H = 0x0B;        
         
-        //comandos pra tratar a interrup��o
+        //comandos pra tratar a interrupcao
         conta++;
         //conta == 8 passou 5s
-        if (conta==8){
+        if (conta==8 && flag_entrou_pre_ac == 0){
+            flag_entrou_pre_ac = 1; // Ativando flag q mostra q particulas entraram no pre acelerador.
             PRE_AC = 1; 
             LHC = 0;
             COL = 0;
@@ -178,8 +182,32 @@ void __interrupt() TrataInt(void)
 }
 int ler_an(int canal) 
 {
-    ADCON0bits.CHS = canal; 
-    ADCON0bits.GO = 1;   
-     __delay_us(100);                              
-    return ((ADRESH << 8) + ADRESL) / 2;
+    ADCON0bits.CHS = canal;  // Seleciona o canal ADC (ex: 0 = AN0, 1 = AN1, etc.)
+    ADCON0bits.GO = 1;   // Inicia a conversão ADC
+     __delay_us(100);   
+     
+     // Junta os dois registradores de 8 bits (ADRESH e ADRESL) e retorna média simples
+    return ((ADRESH << 8) + ADRESL);
+}
+
+void mostrar_energia() {
+    int valor_energia = ler_an(2); // Lê o valor da energia
+
+    char buffer[16]; // Buffer para armazenar a string da energia (ex: "12345 kWh")
+
+    // Limpa a área onde a energia será exibida para evitar lixo de leituras anteriores
+    glcd_write_string("               ", 0, 0); // Limpa a linha 1 inteira (15 espaços)
+
+    // Converte o valor_energia para string.
+    sprintf(buffer, "%d um", valor_energia); 
+    
+    // Exibe o texto "ENERGIA:"
+    glcd_write_string("ENERGIA:", 0, 0); 
+    
+    // Exibe o valor da energia na página 1 (abaixo de "ENERGIA:")
+    glcd_write_string(buffer, 1, 0); 
+
+    // O delay aqui pode ser ajustado ou movido para a sua função principal (main)
+    // se você quiser atualizar o display mais frequentemente ou ter controle externo.
+    __delay_ms(1000); 
 }
