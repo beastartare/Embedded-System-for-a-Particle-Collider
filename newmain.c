@@ -38,7 +38,6 @@ int energ = 0;
 int temp = 0;
 int rad = 0;
 int flag = 0;
-int flag_entrou_pre_ac = 0; // Essa flag só deixa as particulas entrarem nos pre-aceleradores uma vez no processo.
 
 const unsigned char exemplo_imagem[1024] = {0};
 
@@ -122,8 +121,7 @@ void main(void) {
                     COL = 1;
                     __delay_ms(500);
                     
-                    //ajustando flags
-                   flag_entrou_pre_ac = 0;
+                    //ajustando flag
                    flag = 0;
                 }
            }   
@@ -171,8 +169,7 @@ void __interrupt() TrataInt(void)
         //comandos pra tratar a interrupcao
         conta++;
         //conta == 8 passou 5s
-        if (conta==8 && flag_entrou_pre_ac == 0){
-            flag_entrou_pre_ac = 1; // Ativando flag q mostra q particulas entraram no pre acelerador.
+        if (conta==8){
             PRE_AC = 1; 
             LHC = 0;
             COL = 0;
