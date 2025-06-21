@@ -37,13 +37,14 @@ int conta = 0;
 int energ = 0;
 int temp = 0;
 int rad = 0;
-int flag;
+int flag = 0;
 int flag_entrou_pre_ac = 0; // Essa flag só deixa as particulas entrarem nos pre-aceleradores uma vez no processo.
 
 const unsigned char exemplo_imagem[1024] = {0};
 
 int ler_an(int canal);
 void mostrar_energia();
+void processo();
 
 void main(void) {
     OPTION_REG =0b00111111; // Ativa os pull-ups.
@@ -92,29 +93,44 @@ void main(void) {
 
     glcd_init();
     glcd_clear();
-
-    flag = 0;
     
     while(1){
         // Se os sensores de feixes de prótons estiverem ativos, iniciamos o processo de aceleração.
         if (SN_X == 0 && SN_Y == 0 && flag==0)
         {
-            T1CONbits.TMR1ON = 1; // acende pre acelerador se particulas ainda nao estiveram passado por la.
+             //ativação do timer
+            T1CONbits.TMR1ON = 1;
             flag = 1;
         }
-        
-        if(flag==1)
+         
+        while(flag==1)
         {
+            //leitura da energia
             energ = ler_an(2);
             mostrar_energia();
-            __delay_ms(5000);
+            __delay_ms(500);
+            
+            //se maior que 600 entra no lhc
             if(energ>600) 
             {
-                PRE_AC = 0; // Sai dos pré-aceleradores
-                LHC = 1; // Entra no LHC
-            }
+               PRE_AC = 0;
+               LHC = 1;
+
+               //se maior que 800 colisao
+                if(energ>800)
+                {
+                    COL = 1;
+                    __delay_ms(500);
+                    
+                    //ajustando flags
+                   flag_entrou_pre_ac = 0;
+                   flag = 0;
+                }
+           }   
         }
-        
+        //desliga leds
+        COL = 0;
+        LHC = 0;
     }
     return;
     
@@ -144,7 +160,6 @@ void main(void) {
     glcd_write_string("123 ABC !@#$", 2, 0); // Exemplo com números e símbolos
     __delay_ms(4000); */
 }
-
 void __interrupt() TrataInt(void)
 {
     if (TMR1IF)  //foi a interrup��o de estouro do timer1 que chamou a int?
@@ -162,8 +177,9 @@ void __interrupt() TrataInt(void)
             LHC = 0;
             COL = 0;
             conta = 0;
+            T1CONbits.TMR1ON = 0; 
         }
-  }
+    }
     if (INTF) // Foi a interrupção externa que chamou?
     {
         INTCONbits.INTF = 0; // Reseta flag de interrup??o.
