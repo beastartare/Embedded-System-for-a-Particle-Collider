@@ -43,7 +43,8 @@ const unsigned char exemplo_imagem[1024] = {0};
 
 int ler_an(int canal);
 void mostrar_energia();
-void processo();
+void mostrar_temperatura();
+void mostrar_radiacao();
 
 void main(void) {
     OPTION_REG =0b00111111; // Ativa os pull-ups.
@@ -56,9 +57,9 @@ void main(void) {
     LHC = 0;
     COL = 0;
     
-    //** configurando interrup��es ***********************************
+    //** configurando interrup??es ***********************************
     INTCONbits.GIE=1;       //Habiliita a int global
-    INTCONbits.PEIE = 1;    //Habilita a int dos perif�ricos
+    INTCONbits.PEIE = 1;    //Habilita a int dos perif?ricos
     INTCONbits.INTE = 1;     // interrupção externa (RB0)
     PIE1bits.TMR1IE = 1;    //Habilita int do timer 1
     
@@ -107,6 +108,8 @@ void main(void) {
             //leitura da energia
             energ = ler_an(2);
             mostrar_energia();
+            mostrar_temperatura();
+            mostrar_radiacao();
             __delay_ms(500);
             
             //se maior que 600 entra no lhc
@@ -120,8 +123,7 @@ void main(void) {
                 {
                     COL = 1;
                     __delay_ms(500);
-                    
-                    //ajustando flag
+                   
                    flag = 0;
                 }
            }   
@@ -160,9 +162,9 @@ void main(void) {
 }
 void __interrupt() TrataInt(void)
 {
-    if (TMR1IF)  //foi a interrup��o de estouro do timer1 que chamou a int?
+    if (TMR1IF)  //foi a interrup??o de estouro do timer1 que chamou a int?
      {  
-        PIR1bits.TMR1IF = 0; //reseta o flag da interrup��o
+        PIR1bits.TMR1IF = 0; //reseta o flag da interrup??o
         TMR1L = 0xDC;        //reinicia contagem com 3036
         TMR1H = 0x0B;        
         
@@ -170,6 +172,7 @@ void __interrupt() TrataInt(void)
         conta++;
         //conta == 8 passou 5s
         if (conta==8){
+            //flag_entrou_pre_ac = 1; // Ativando flag q mostra q particulas entraram no pre acelerador.
             PRE_AC = 1; 
             LHC = 0;
             COL = 0;
@@ -199,10 +202,55 @@ int ler_an(int canal)
     ADCON0bits.GO = 1;   // Inicia a conversão ADC
      __delay_us(100);   
      
-     // Junta os dois registradores de 8 bits (ADRESH e ADRESL) e retorna média simples
+     // Junta os dois registradores de 8 bits (ADRESH e ADRESL)
     return ((ADRESH << 8) + ADRESL);
 }
+void mostrar_radiacao()
+{
+    int valor_rad = ler_an(1); // Lê o valor da radiacao
 
+    char buffer[16]; // Buffer para armazenar a string da radiacao
+
+    // Limpa a área onde a radiacao será exibida para evitar lixo de leituras anteriores
+    glcd_write_string("               ", 5, 0); // Limpa a linha 5 inteira (15 espaços)
+
+    // Converte o valor_energia para string.
+    sprintf(buffer, "%d U", valor_rad); 
+    
+    // Exibe o texto "RADIACAO"
+    glcd_write_string("RADIACAO", 4, 0); 
+    
+    // Exibe o valor da radiacao
+    glcd_write_string(buffer, 5, 0); 
+
+    // O delay aqui pode ser ajustado ou movido para a sua função principal (main)
+    // se você quiser atualizar o display mais frequentemente ou ter controle externo.
+    __delay_ms(1000); 
+    
+}
+void mostrar_temperatura()
+{
+    int valor_temperatura = (ler_an(0)/2) - 1; // Lê o valor da temepratura (ver porque dimiui 1)
+
+    char buffer[16]; // Buffer para armazenar a string da temperatura
+
+    // Limpa a área onde a temperatura será exibida para evitar lixo de leituras anteriores
+    glcd_write_string("               ", 3, -1); // Limpa a linha 3 inteira (15 espaços)
+
+    // Converte o valor_energia para string.
+    sprintf(buffer, "%d C", valor_temperatura); 
+    
+    // Exibe o texto "TEMPERATURA"
+    glcd_write_string("TEMPERATURA", 2, -1); 
+    
+    // Exibe o valor da temperatura 
+    glcd_write_string(buffer, 3, -1); //ver porque o -1 faz a temperatura nao cortar
+
+    // O delay aqui pode ser ajustado ou movido para a sua função principal (main)
+    // se você quiser atualizar o display mais frequentemente ou ter controle externo.
+    __delay_ms(1000); 
+    
+}
 void mostrar_energia() {
     int valor_energia = ler_an(2); // Lê o valor da energia
 
