@@ -1,6 +1,6 @@
 /*
  * File:   newmain.c
- * Author: Usuario
+ * Author: Beatriz S. Tartare e Maria Eduarda W. M. Vianna
  *
  * Created on 19 de Junho de 2025, 15:55
  */
@@ -96,6 +96,7 @@ void main(void) {
     glcd_init();
     glcd_clear();
     
+    
     while(1){
         
         //leitura da radiação para interrupcao
@@ -120,7 +121,7 @@ void main(void) {
             mostrar_temperatura();
             mostrar_radiacao();
            
-            __delay_ms(500);
+            __delay_ms(50);
             
             //se maior que 600 entra no lhc
             if(energ>600) 
@@ -237,7 +238,39 @@ int ler_an(int canal)
 }
 void mostrar_colisao()
 {
-    //implementacao display no momento de colisao
+    // 6 Posicoes
+    const uint8_t posicoes[6][4] = {
+        {60, 60, 67, 60},
+        {35, 52, 105, 52},
+        {10, 38, 117, 38},
+        {10, 27, 117, 27},
+        {35, 16, 105, 16},
+        {60, 5, 67, 5}
+    };
+
+    for (int i = 0; i < 6; i++) {
+        glcd_clear();
+
+        // Esquerda
+        uint8_t x1 = posicoes[i][0];
+        uint8_t y1 = posicoes[i][1];
+        glcd_draw_char('.', y1 / 8, x1);
+
+        // Direita
+        uint8_t x2 = posicoes[i][2];
+        uint8_t y2 = posicoes[i][3];
+        glcd_draw_char('.', y2 / 8, x2);
+
+        // "COLISAO" no meio fixo
+        char *msg = "COLISAO";
+        uint8_t col = 64 - 3 * 6;
+        for (int j = 0; msg[j] != '\0'; j++) {
+            glcd_draw_char(msg[j], 4, col);  // página 4 ≈ y = 32
+            col += 6;
+        }
+
+        __delay_ms(300);
+    }
 }
 void mostrar_radiacao()
 {
@@ -282,7 +315,7 @@ void mostrar_temperatura()
 
     // O delay aqui pode ser ajustado ou movido para a sua função principal (main)
     // se você quiser atualizar o display mais frequentemente ou ter controle externo.
-    __delay_ms(1000); 
+    __delay_ms(100); 
     
 }
 void mostrar_energia() {
@@ -304,5 +337,5 @@ void mostrar_energia() {
 
     // O delay aqui pode ser ajustado ou movido para a sua função principal (main)
     // se você quiser atualizar o display mais frequentemente ou ter controle externo.
-    __delay_ms(1000); 
+    __delay_ms(100); 
 }
