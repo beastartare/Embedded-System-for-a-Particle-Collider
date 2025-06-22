@@ -45,6 +45,7 @@ int ler_an(int canal);
 void mostrar_energia();
 void mostrar_temperatura();
 void mostrar_radiacao();
+void mostrar_colisao();
 
 void main(void) {
     OPTION_REG =0b00111111; // Ativa os pull-ups.
@@ -58,11 +59,11 @@ void main(void) {
     COL = 0;
     
     //** configurando interrup??es ***********************************
-    INTCONbits.GIE=1;       //Habiliita a int global
-    INTCONbits.PEIE = 1;    //Habilita a int dos perif?ricos
+    INTCONbits.GIE=1;        //Habiliita a int global
+    INTCONbits.PEIE = 1;     //Habilita a int dos perif?ricos
     INTCONbits.INTE = 1;     // interrupção externa (RB0)
     PIE1bits.TMR1IE = 1;    //Habilita int do timer 1
-   
+    PIE1bits.ADIE = 1;      //Habilita a interrupção do ADC
     
     //*** configura o timer 1 *****************************************
     T1CONbits.TMR1CS = 0;   //Define timer 1 como temporizador (Fosc/4).
@@ -96,6 +97,10 @@ void main(void) {
     glcd_clear();
     
     while(1){
+        
+        //leitura da radiação para interrupcao
+        if (ADCON0bits.GO == 0) rad = ler_an(1);
+        
         // Se os sensores de feixes de prótons estiverem ativos, iniciamos o processo de aceleração.
         if (SN_X == 0 && SN_Y == 0 && flag==0)
         {
@@ -106,11 +111,15 @@ void main(void) {
          
         while(flag==1)
         {
+            //leitura da radiação para interrupcao
+            if (ADCON0bits.GO == 0) rad = ler_an(1);
+            
             //leitura da energia
             energ = ler_an(2);
             mostrar_energia();
             mostrar_temperatura();
             mostrar_radiacao();
+           
             __delay_ms(500);
             
             //se maior que 600 entra no lhc
@@ -123,8 +132,8 @@ void main(void) {
                 if(energ>800)
                 {
                     COL = 1;
-                    __delay_ms(500);
-                   
+                    __delay_ms(2000);
+                   mostrar_colisao();
                    flag = 0;
                 }
            }   
@@ -163,9 +172,9 @@ void main(void) {
 }
 void __interrupt() TrataInt(void)
 {
-    if (TMR1IF)  //foi a interrup??o de estouro do timer1 que chamou a int?
+    if (TMR1IF)  //foi a interrupcao de estouro do timer1 que chamou a int?
      {  
-        PIR1bits.TMR1IF = 0; //reseta o flag da interrup??o
+        PIR1bits.TMR1IF = 0; //reseta o flag da interrupcao
         TMR1L = 0xDC;        //reinicia contagem com 3036
         TMR1H = 0x0B;        
         
@@ -196,6 +205,26 @@ void __interrupt() TrataInt(void)
         }
         LED_EM = 0; // Desligar led de emergência.
     }
+    
+    if (ADIF) //foi a interrupcaoo de final de conversao AD?
+    {
+        PIR1bits.ADIF = 0; //reseta o flag da interrupcao
+
+        if (ADCON0bits.CHS == 1) //verifica se é o canal 1
+        { 
+            while(rad>800) //enquanto > 800: protocolo de emergencia
+            {
+                rad = ler_an(1); //le a entrada analogica de radiação 
+                LED_EM = 1; // Liga led de emergência
+
+                // Desliga todos os outros LEDs.
+                PRE_AC = 0;
+                LHC = 0;
+                COL = 0;
+            }
+            LED_EM = 0; // Desliga led de emergência.
+        }
+    }
 }
 int ler_an(int canal) 
 {
@@ -205,6 +234,10 @@ int ler_an(int canal)
      
      // Junta os dois registradores de 8 bits (ADRESH e ADRESL)
     return ((ADRESH << 8) + ADRESL);
+}
+void mostrar_colisao()
+{
+    //implementacao display no momento de colisao
 }
 void mostrar_radiacao()
 {
