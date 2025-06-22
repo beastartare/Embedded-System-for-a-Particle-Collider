@@ -62,6 +62,7 @@ void main(void) {
     INTCONbits.PEIE = 1;    //Habilita a int dos perif?ricos
     INTCONbits.INTE = 1;     // interrupção externa (RB0)
     PIE1bits.TMR1IE = 1;    //Habilita int do timer 1
+    PIE1bits.ADIE = 1;      //Habilita a interrupção do ADC
     
     //*** configura o timer 1 *****************************************
     T1CONbits.TMR1CS = 0;   //Define timer 1 como temporizador (Fosc/4).
@@ -194,6 +195,24 @@ void __interrupt() TrataInt(void)
             COL = 0;
         }
         LED_EM = 0; // Desligar led de emergência.
+    }
+
+    if (ADIF) //foi a interrupcaoo de final de conversao AD?
+    {
+        PIR1bits.ADIF = 0; //reseta o flag da interrupcao
+
+        rad = ler_an(1); //le entrada analogica da radiacao
+        
+        if(rad>800) //se > 800: protocolo de emergencia
+        {
+            LED_EM = 1; // Liga led de emergência
+            
+            // Desligar todos os outros LEDs.
+            PRE_AC = 0;
+            LHC = 0;
+            COL = 0;
+        }
+        else LED_EM = 0; // se diminuir desliga led de emergência.
     }
 }
 int ler_an(int canal) 
