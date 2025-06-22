@@ -20,15 +20,15 @@
 #define GLCD_RW             PORTCbits.RC5
 #define GLCD_EN             PORTCbits.RC6
 #define GLCD_RST            PORTCbits.RC7 // Pino de Reset
-#define GLCD_CS1            PORTCbits.RC2 // Chip Select 1 (Lado esquerdo do display)
-#define GLCD_CS2            PORTCbits.RC3 // Chip Select 2 (Lado direito do display)
+#define GLCD_CS1            PORTCbits.RC3 // AGORA, GLCD_CS1 é RC3 (anteriormente era CS2 no Proteus, mas parece ser o esquerdo visualmente)
+#define GLCD_CS2            PORTCbits.RC2 // AGORA, GLCD_CS2 é RC2 (anteriormente era CS1 no Proteus, mas parece ser o direito visualmente)
 
 #define GLCD_RS_DIR         TRISCbits.TRISC4
 #define GLCD_RW_DIR         TRISCbits.TRISC5
 #define GLCD_EN_DIR         TRISCbits.TRISC6
 #define GLCD_RST_DIR        TRISCbits.TRISC7
-#define GLCD_CS1_DIR        TRISCbits.TRISC2
-#define GLCD_CS2_DIR        TRISCbits.TRISC3
+#define GLCD_CS1_DIR        TRISCbits.TRISC3 
+#define GLCD_CS2_DIR        TRISCbits.TRISC2 
 
 // Declarações das funções
 void glcd_init(void);
