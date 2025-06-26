@@ -16,13 +16,14 @@
 #define _XTAL_FREQ 4000000 //***Define a frequencia do clock, 4Mhz neste caso
 
 #pragma config FOSC = HS        // Oscillator Selection bits (HS oscillator)
-#pragma config WDTE = OFF       // Watchdog Timer Enable bit (WDT disabled)
+#pragma config WDTE = ON      // Watchdog Timer Enable bit (WDT enabled)
 #pragma config PWRTE = ON       // Power-up Timer Enable bit (PWRT enabled)
-#pragma config BOREN = OFF      // Brown-out Reset Enable bit (BOR disabled)
+#pragma config BOREN = ON      // Brown-out Reset Enable bit (BOR disabled)
 #pragma config LVP = OFF        // Low-Voltage (Single-Supply) In-Circuit Serial Programming Enable bit (RB3 is digital I/O, HV on MCLR must be used for programming)
 #pragma config CPD = OFF        // Data EEPROM Memory Code Protection bit (Data EEPROM code protection off)
 #pragma config WRT = OFF        // Flash Program Memory Write Enable bits (Write protection off; all program memory may be written to by EECON control)
 #pragma config CP = OFF         // Flash Program Memory Code Protection bit 
+
 
 //Definindo bits de entrada e saída
 #define BT_EM PORTBbits.RB0 // Interrupção, botao de emergencia
@@ -46,6 +47,7 @@ void mostrar_energia();
 void mostrar_temperatura();
 void mostrar_radiacao();
 void mostrar_colisao();
+
 
 void main(void) {
     OPTION_REG =0b00111111; // Ativa os pull-ups.
@@ -96,8 +98,19 @@ void main(void) {
     glcd_init();
     glcd_clear();
     
+    //** configura a taxa de temporiza��o do WatchDog Time(WDT)1:2 neste caso 36ms
+   //Desde que PSA = 1, ou seja, pre-escaler do timer0 exclusivo para WDT, pode usar
+   //timer 0, mas conta 1:1
+    OPTION_REGbits.PS0 = 1;
+    OPTION_REGbits.PS1 = 1;
+    OPTION_REGbits.PS2 = 1;
+     
+    CLRWDT();    //reseta a contagem do WDT para n�o resetar
+    
     
     while(1){
+    
+        CLRWDT();    //reseta a contagem do WDT para n�o resetar
         
         //leitura da radiação para interrupcao
         if (ADCON0bits.GO == 0) rad = ler_an(1);
@@ -112,6 +125,7 @@ void main(void) {
          
         while(flag==1)
         {
+            CLRWDT();
             //leitura da radiação para interrupcao
             if (ADCON0bits.GO == 0) rad = ler_an(1);
             
@@ -133,8 +147,9 @@ void main(void) {
                 if(energ>800)
                 {
                     COL = 1;
-                    __delay_ms(2000);
+                   CLRWDT();
                    mostrar_colisao();
+                   CLRWDT();
                    flag = 0;
                 }
            }   
@@ -265,7 +280,7 @@ void mostrar_colisao()
         char *msg = "COLISAO";
         uint8_t col = 64 - 3 * 6;
         for (int j = 0; msg[j] != '\0'; j++) {
-            glcd_draw_char(msg[j], 4, col);  // página 4 ≈ y = 32
+            glcd_draw_char(msg[j], 4, col);  // página 4 ? y = 32
             col += 6;
         }
 
