@@ -40,11 +40,24 @@ int temp = 0;
 int rad = 0;
 int flag = 0;
 
+/*
+ * Energia < 600 está nos pré-aceleradores
+ * Energia > 600 entra no LHC 
+ * Energia > 800 significa que colidiu
+ * 
+ * Após colisão:
+ * Temperatura >= 120 e radiacao >= 400 -> Boson de Higgs
+ * Temperatura < 120 e radiacao < 400 -> Particula leve
+ * Outras opcoes: evento nao identificado.
+ * 
+ */
+
 int ler_an(int canal);
 void mostrar_energia();
 void mostrar_temperatura();
 void mostrar_radiacao();
 void mostrar_colisao();
+void resultados_colisao();
 
 
 void main(void) {
@@ -251,7 +264,7 @@ int ler_an(int canal)
 }
 void mostrar_colisao()
 {
-    const unsigned char exemplo_imagem[1024] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
+    const unsigned char imagem_colisao[1024] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
     0xff, 0xff, 0xcf, 0x9f, 0x3f, 0x5f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
     0xff, 0xff, 0xff, 0xff, 0xe7, 0x0f, 0x3f, 0xff, 0xff, 0xff, 0x7f, 0xff, 0x7f, 0xff, 0xff, 0xff, 
@@ -345,17 +358,62 @@ void mostrar_colisao()
             glcd_draw_char(msg[j], 4, col);  // página 4 ≈ y = 32
             col += 6;
         }
-
+        CLRWDT();
         __delay_ms(300);
     }
     
-    glcd_display_image(exemplo_imagem);
-    __delay_ms(300);
+    glcd_display_image(imagem_colisao);
+    CLRWDT();
+    __delay_ms(2000);
+    CLRWDT();
+    __delay_ms(2000);
+    CLRWDT();
+    resultados_colisao();
+}
+
+void resultados_colisao()
+{
+    glcd_clear();
+    glcd_write_string("ANALISANDO RESULTADO", 4, 6); 
+    __delay_ms(2000);
+    CLRWDT();
+    __delay_ms(2000);
+    CLRWDT();
+    
+    // Lendo os valores de temperatura e radiacao para que possamos analisar o resultado.
+    temp = (ler_an(0)/2) - 1;
+    rad = ler_an(1);
+    
+    // Mostrar os niveis de energia, temperatura e radiacao.    
+    glcd_clear();    
+    mostrar_energia();
+    mostrar_temperatura();
+    mostrar_radiacao();
+    
+    if (temp >= 120 && rad >= 400) {
+        glcd_write_string("BOSON DE HIGGS", 6, 0);
+        glcd_write_string("DETECTADO", 7, 0);
+    }
+    else if (temp < 120 && rad < 400) {
+        glcd_write_string("PARTICULA LEVE", 6, 0);
+        glcd_write_string("DETECTADA", 7, 0);
+    }
+    else {
+        glcd_write_string("EVENTO NAO", 6, 0);
+        glcd_write_string("IDENTIFICADO", 7, 0);
+    }
+    __delay_ms(2000);
+    CLRWDT();
+    __delay_ms(2000);
+    CLRWDT();
+    __delay_ms(2000);
+    CLRWDT();
+    
 }
 
 void mostrar_radiacao()
 {
-    int valor_rad = ler_an(1); // Lê o valor da radiacao
+    rad = ler_an(1); // Lê o valor da radiacao
 
     char buffer[16]; // Buffer para armazenar a string da radiacao
 
@@ -363,7 +421,7 @@ void mostrar_radiacao()
     glcd_write_string("               ", 5, 0); // Limpa a linha 5 inteira (15 espaços)
 
     // Converte o valor_energia para string.
-    sprintf(buffer, "%d U", valor_rad); 
+    sprintf(buffer, "%d U", rad); 
     
     // Exibe o texto "RADIACAO"
     glcd_write_string("RADIACAO", 4, 0); 
@@ -371,14 +429,12 @@ void mostrar_radiacao()
     // Exibe o valor da radiacao
     glcd_write_string(buffer, 5, 0); 
 
-    // O delay aqui pode ser ajustado ou movido para a sua função principal (main)
-    // se você quiser atualizar o display mais frequentemente ou ter controle externo.
     __delay_ms(1000); 
     
 }
 void mostrar_temperatura()
 {
-    int valor_temperatura = (ler_an(0)/2) - 1; // Lê o valor da temepratura (ver porque dimiui 1)
+    temp = (ler_an(0)/2) - 1; // Lê o valor da temepratura (ver porque dimiui 1)
 
     char buffer[16]; // Buffer para armazenar a string da temperatura
 
@@ -386,7 +442,7 @@ void mostrar_temperatura()
     glcd_write_string("               ", 3, -1); // Limpa a linha 3 inteira (15 espaços)
 
     // Converte o valor_energia para string.
-    sprintf(buffer, "%d C", valor_temperatura); 
+    sprintf(buffer, "%d C", temp); 
     
     // Exibe o texto "TEMPERATURA"
     glcd_write_string("TEMPERATURA", 2, -1); 
@@ -400,15 +456,15 @@ void mostrar_temperatura()
     
 }
 void mostrar_energia() {
-    int valor_energia = ler_an(2); // Lê o valor da energia
+    int energ = ler_an(2); // Lê o valor da energia
 
     char buffer[16]; // Buffer para armazenar a string da energia (ex: "12345 kWh")
 
     // Limpa a área onde a energia será exibida para evitar lixo de leituras anteriores
     glcd_write_string("               ", 0, 0); // Limpa a linha 1 inteira (15 espaços)
 
-    // Converte o valor_energia para string.
-    sprintf(buffer, "%d kWh", valor_energia); 
+    // Converte o energ para string.
+    sprintf(buffer, "%d kWh", energ); 
     
     // Exibe o texto "ENERGIA:"
     glcd_write_string("ENERGIA:", 0, 0); 
