@@ -465,17 +465,16 @@ void mostrar_energia() {
 
     // Limpa a área onde a energia será exibida para evitar lixo de leituras anteriores
     glcd_write_string("               ", 0, 0); // Limpa a linha 1 inteira (15 espaços)
-
-    // Converte o energ para string.
-    sprintf(buffer, "%d kWh", energ); 
     
     // Exibe o texto "ENERGIA:"
     glcd_write_string("ENERGIA:", 0, 0); 
     
-    // Exibe o valor da energia na página 1 (abaixo de "ENERGIA:")
-    glcd_write_string(buffer, 1, 0); 
+    // Converte energia ADC para TeV (0 a 14 TeV)
+    int energia_TeV = (energ * 14) / 1023;
 
-    // O delay aqui pode ser ajustado ou movido para a sua função principal (main)
-    // se você quiser atualizar o display mais frequentemente ou ter controle externo.
+    sprintf(buffer, "%d TEV", energia_TeV);
+    glcd_write_string(buffer, 1, 0);
+
+    
     __delay_ms(100); 
 }
