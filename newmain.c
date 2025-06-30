@@ -439,16 +439,16 @@ void mostrar_temperatura()
     char buffer[16]; // Buffer para armazenar a string da temperatura
 
     // Limpa a área onde a temperatura será exibida para evitar lixo de leituras anteriores
-    glcd_write_string("               ", 3, -1); // Limpa a linha 3 inteira (15 espaços)
+    glcd_write_string("               ", 3, 0); // Limpa a linha 3 inteira (15 espaços)
 
     // Converte o valor_energia para string.
     sprintf(buffer, "%d C", temp); 
     
     // Exibe o texto "TEMPERATURA"
-    glcd_write_string("TEMPERATURA", 2, -1); 
+    glcd_write_string("TEMPERATURA", 2, 0); 
     
     // Exibe o valor da temperatura 
-    glcd_write_string(buffer, 3, -1); //ver porque o -1 faz a temperatura nao cortar
+    glcd_write_string(buffer, 3, 0); //ver porque o -1 faz a temperatura nao cortar
 
     // O delay aqui pode ser ajustado ou movido para a sua função principal (main)
     // se você quiser atualizar o display mais frequentemente ou ter controle externo.
