@@ -262,6 +262,7 @@ int ler_an(int canal)
      // Junta os dois registradores de 8 bits (ADRESH e ADRESL)
     return ((ADRESH << 8) + ADRESL);
 }
+
 void mostrar_colisao()
 {
     const unsigned char imagem_colisao[1024] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
@@ -350,14 +351,10 @@ void mostrar_colisao()
         uint8_t x2 = posicoes[i][2];
         uint8_t y2 = posicoes[i][3];
         glcd_draw_char('*', y2 / 8, x2);
-
-        // "COLISAO" no meio fixo
-        char *msg = "COLISAO";
-        uint8_t col = 64 - 3 * 6;
-        for (int j = 0; msg[j] != '\0'; j++) {
-            glcd_draw_char(msg[j], 4, col);  // página 4 ≈ y = 32
-            col += 6;
-        }
+        
+        // Escrever "COLISAO" no meio
+        glcd_write_string("COLISAO", 4, 43);
+        
         CLRWDT();
         __delay_ms(300);
     }
