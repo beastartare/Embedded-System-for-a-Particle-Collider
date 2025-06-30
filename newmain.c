@@ -434,7 +434,10 @@ void mostrar_radiacao()
 }
 void mostrar_temperatura()
 {
-    temp = (ler_an(0)/2) - 1; // Lê o valor da temepratura (ver porque dimiui 1)
+    temp = ler_an(0); // Lê o valor da temepratura 
+
+    int tensao = (temp * 5000UL) / 1023; //funcao para converter o valor para °C (utiliza-se "UL - unsigned long" para não ocorrer estouro/overflow)
+    temp = tensao / 10; 
 
     char buffer[16]; // Buffer para armazenar a string da temperatura
 
