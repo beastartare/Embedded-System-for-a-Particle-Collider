@@ -124,7 +124,7 @@ void main(void) {
         CLRWDT();    //reseta a contagem do WDT para n�o resetar
         
         //leitura da radiação para interrupcao
-        if (ADCON0bits.GO == 0) rad = ler_an(1);
+        rad = ler_an(1);
         
         // Se os sensores de feixes de prótons estiverem ativos, iniciamos o processo de aceleração.
         if (SN_X == 0 && SN_Y == 0 && flag==0)
@@ -138,7 +138,7 @@ void main(void) {
         {
             CLRWDT();
             //leitura da radiação para interrupcao
-            if (ADCON0bits.GO == 0) rad = ler_an(1);
+            rad = ler_an(1);
             
             //leitura da energia
             energ = ler_an(2);
@@ -378,8 +378,11 @@ void resultados_colisao()
     CLRWDT();
     
     // Lendo os valores de temperatura e radiacao para que possamos analisar o resultado.
-    temp = (ler_an(0)/2) - 1;
+    temp = ler_an(0); 
     rad = ler_an(1);
+
+    int tensao = (temp * 5000UL) / 1023; //funcao para converter o valor para °C (utiliza-se "UL - unsigned long" para não ocorrer estouro/overflow)
+    temp = tensao / 10; 
     
     // Mostrar os niveis de energia, temperatura e radiacao.    
     glcd_clear();    
