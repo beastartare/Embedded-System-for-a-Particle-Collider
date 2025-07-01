@@ -341,7 +341,9 @@ void mostrar_colisao()
 
     for (int i = 0; i < 6; i++) {
         glcd_clear();
-
+        
+        //leitura da radiação para interrupcao
+        rad = ler_an(1);
         // Esquerda
         uint8_t x1 = posicoes[i][0];
         uint8_t y1 = posicoes[i][1];
@@ -365,6 +367,8 @@ void mostrar_colisao()
     CLRWDT();
     __delay_ms(2000);
     CLRWDT();
+    //leitura da radiação para interrupcao
+    rad = ler_an(1);
     resultados_colisao();
 }
 
@@ -402,6 +406,8 @@ void resultados_colisao()
         glcd_write_string("EVENTO NAO", 6, 0);
         glcd_write_string("IDENTIFICADO", 7, 0);
     }
+    //leitura da radiação para interrupcao
+     rad = ler_an(1);
     __delay_ms(2000);
     CLRWDT();
     __delay_ms(2000);
