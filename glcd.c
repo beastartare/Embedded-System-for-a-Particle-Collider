@@ -1,7 +1,7 @@
 #include <xc.h>
 #include "glcd.h"
 
-#define _XTAL_FREQ 4000000 // Exemplo para 4MHz. Altere se sua frequência for diferente!
+#define _XTAL_FREQ 4000000 
 
 // Font 5x7 para caracteres ASCII imprimíveis (de ' ' a '~')
 // Total de 95 caracteres. Cada caractere tem 5 bytes de dados.
@@ -289,3 +289,4 @@ void glcd_write_string(const char *str, uint8_t page, uint8_t start_column) {
         }
     }
 }
+
