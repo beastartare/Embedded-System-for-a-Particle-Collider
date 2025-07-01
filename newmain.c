@@ -171,31 +171,6 @@ void main(void) {
     }
     return;
     
-    /* EXEMPLO DE ESCRITA NO DISPLAY!!!!!!!!
-    // Pequeno atraso na inicialização para estabilização da fonte/PIC
-    // Especialmente útil em simulações ou hardware real
-    __delay_ms(100);
-
-    // Teste de escrita de caracteres individuais (agora pode ser qualquer um)
-    glcd_draw_char('A', 0, 0);
-    glcd_draw_char('B', 0, 6);
-    glcd_draw_char('C', 0, 12);
-    glcd_draw_char('1', 0, 18);
-    glcd_draw_char('!', 0, 24);
-
-    glcd_draw_char('O', 0, 64);  // 'O' na página 0, coluna 64 (Chip 2)
-    glcd_draw_char('K', 0, 70);  // 'K' na página 0, coluna 70 (Chip 2)
-
-    __delay_ms(2000); // Atraso para ver os caracteres
-
-    // Teste de escrita de string
-    glcd_clear(); // Limpa novamente
-    __delay_ms(2000);
-
-    glcd_write_string("OLA MUNDO", 0, 0); // Escreve na página 0, coluna 0 (Chip 1)
-    glcd_write_string("TESTE GLCD", 1, 0); // Escreve na página 1, coluna 0 (Chip 1/2)
-    glcd_write_string("123 ABC !@#$", 2, 0); // Exemplo com números e símbolos
-    __delay_ms(4000); */
 }
 void __interrupt() TrataInt(void)
 {
@@ -209,7 +184,6 @@ void __interrupt() TrataInt(void)
         conta++;
         //conta == 8 passou 5s
         if (conta==8){
-            //flag_entrou_pre_ac = 1; // Ativando flag q mostra q particulas entraram no pre acelerador.
             PRE_AC = 1; 
             LHC = 0;
             COL = 0;
@@ -232,6 +206,8 @@ void __interrupt() TrataInt(void)
             CLRWDT();
         }
         LED_EM = 0; // Desligar led de emergência.
+        
+        flag = 0; // Reseta a flag para podermos reiniciar o processo.
     }
     
     if (ADIF) //foi a interrupcaoo de final de conversao AD?
@@ -252,6 +228,8 @@ void __interrupt() TrataInt(void)
                 CLRWDT();
             }
             LED_EM = 0; // Desliga led de emergência.
+            
+            flag = 0; // Reseta a flag para podermos reiniciar o processo.
         }
     }
 }
