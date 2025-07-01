@@ -226,10 +226,11 @@ void __interrupt() TrataInt(void)
                 LHC = 0;
                 COL = 0;
                 CLRWDT();
+                flag = 0; // Reseta a flag para podermos reiniciar o processo.
             }
             LED_EM = 0; // Desliga led de emergência.
             
-            flag = 0; // Reseta a flag para podermos reiniciar o processo.
+            
         }
     }
 }
