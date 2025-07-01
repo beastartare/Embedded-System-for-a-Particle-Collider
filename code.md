@@ -1,3 +1,0 @@
-```c
-escrever código aqui
-```
