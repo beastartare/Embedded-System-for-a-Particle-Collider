@@ -229,6 +229,7 @@ void __interrupt() TrataInt(void)
             PRE_AC = 0;
             LHC = 0;
             COL = 0;
+            CLRWDT();
         }
         LED_EM = 0; // Desligar led de emergência.
     }
@@ -248,6 +249,7 @@ void __interrupt() TrataInt(void)
                 PRE_AC = 0;
                 LHC = 0;
                 COL = 0;
+                CLRWDT();
             }
             LED_EM = 0; // Desliga led de emergência.
         }
