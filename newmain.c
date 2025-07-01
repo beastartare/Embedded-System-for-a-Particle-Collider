@@ -5,8 +5,6 @@
  * Created on 19 de Junho de 2025, 15:55
  */
 
-// https://github.com/kwiecinski/PIC-XC8-KS0108-NT7108-LCD-LIBRARY/blob/master/Files/KS0108.h
-
 // inclusao de bibliotecas
 #include <xc.h>          //***inclus?o da biblioteca do compilador
 #include <pic16f877a.h>  //***inclus?o da biblioteca do chip espec?fico
@@ -24,7 +22,6 @@
 #pragma config WRT = OFF        // Flash Program Memory Write Enable bits (Write protection off; all program memory may be written to by EECON control)
 #pragma config CP = OFF         // Flash Program Memory Code Protection bit 
 
-
 //Definindo bits de entrada e saída
 #define BT_EM PORTBbits.RB0 // Interrupção, botao de emergencia
 #define SN_X PORTBbits.RB1  // sensor particula x
@@ -40,25 +37,12 @@ int temp = 0;
 int rad = 0;
 int flag = 0;
 
-/*
- * Energia < 600 está nos pré-aceleradores
- * Energia > 600 entra no LHC 
- * Energia > 800 significa que colidiu
- * 
- * Após colisão:
- * Temperatura >= 120 e radiacao >= 400 -> Boson de Higgs
- * Temperatura < 120 e radiacao < 400 -> Particula leve
- * Outras opcoes: evento nao identificado.
- * 
- */
-
 int ler_an(int canal);
 void mostrar_energia();
 void mostrar_temperatura();
 void mostrar_radiacao();
 void mostrar_colisao();
 void resultados_colisao();
-
 
 void main(void) {
     OPTION_REG =0b00111111; // Ativa os pull-ups.
@@ -109,24 +93,23 @@ void main(void) {
     glcd_init();
     glcd_clear();
     
-    //** configura a taxa de temporiza��o do WatchDog Time(WDT)1:2 neste caso 36ms
+    //** configura a taxa de temporiza??o do WatchDog Time(WDT)1:2 neste caso 36ms
    //Desde que PSA = 1, ou seja, pre-escaler do timer0 exclusivo para WDT, pode usar
    //timer 0, mas conta 1:1
     OPTION_REGbits.PS0 = 1;
     OPTION_REGbits.PS1 = 1;
     OPTION_REGbits.PS2 = 1;
      
-    CLRWDT();    //reseta a contagem do WDT para n�o resetar
-    
+    CLRWDT();    //reseta a contagem do WDT para n?o resetar
     
     while(1){
     
-        CLRWDT();    //reseta a contagem do WDT para n�o resetar
+        CLRWDT();    //reseta a contagem do WDT para n?o resetar
         
         //leitura da radiação para interrupcao
         rad = ler_an(1);
         
-        // Se os sensores de feixes de prótons estiverem ativos, iniciamos o processo de aceleração.
+        // Se os sensores de feixes de particulas estiverem ativos, iniciamos o processo de aceleração.
         if (SN_X == 0 && SN_Y == 0 && flag==0)
         {
              //ativação do timer
@@ -228,12 +211,11 @@ void __interrupt() TrataInt(void)
                 CLRWDT();
                 flag = 0; // Reseta a flag para podermos reiniciar o processo.
             }
-            LED_EM = 0; // Desliga led de emergência.
-            
-            
+            LED_EM = 0; // Desliga led de emergência.  
         }
     }
 }
+
 int ler_an(int canal) 
 {
     ADCON0bits.CHS = canal;  // Seleciona o canal ADC (ex: 0 = AN0, 1 = AN1, etc.)
@@ -310,6 +292,7 @@ void mostrar_colisao()
     0x61, 0x60, 0x60, 0x60, 0x65, 0x60, 0x60, 0x60, 0x60, 0x60, 0x60, 0x60, 0x60, 0x60, 0x60, 0x60, 
     0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x71, 0x71, 0x71, 0x71, 
     0x71, 0x71, 0x71, 0x71, 0x71, 0x79, 0x79, 0x7b, 0x7b, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f};
+    
     // 6 Posicoes
     const uint8_t posicoes[6][4] = {
         {60, 60, 67, 60},
@@ -398,6 +381,26 @@ void resultados_colisao()
     
 }
 
+void mostrar_energia() {
+    int energ = ler_an(2); // Lê o valor da energia
+
+    char buffer[16]; // Buffer para armazenar a string da energia (ex: "12345 kWh")
+
+    // Limpa a área onde a energia será exibida para evitar lixo de leituras anteriores
+    glcd_write_string("               ", 0, 0); // Limpa a linha 1 inteira (15 espaços)
+    
+    // Exibe o texto "ENERGIA:"
+    glcd_write_string("ENERGIA:", 0, 0); 
+    
+    // Converte energia ADC para TeV (0 a 14 TeV)
+    int energia_TeV = (energ * 14) / 1023;
+
+    sprintf(buffer, "%d TEV", energia_TeV);
+    glcd_write_string(buffer, 1, 0);
+
+    __delay_ms(100); 
+}
+
 void mostrar_radiacao()
 {
     rad = ler_an(1); // Lê o valor da radiacao
@@ -417,8 +420,8 @@ void mostrar_radiacao()
     glcd_write_string(buffer, 5, 0); 
 
     __delay_ms(1000); 
-    
 }
+
 void mostrar_temperatura()
 {
     temp = ler_an(0); // Lê o valor da temepratura 
@@ -440,28 +443,5 @@ void mostrar_temperatura()
     // Exibe o valor da temperatura 
     glcd_write_string(buffer, 3, 0); //ver porque o -1 faz a temperatura nao cortar
 
-    // O delay aqui pode ser ajustado ou movido para a sua função principal (main)
-    // se você quiser atualizar o display mais frequentemente ou ter controle externo.
-    __delay_ms(100); 
-    
-}
-void mostrar_energia() {
-    int energ = ler_an(2); // Lê o valor da energia
-
-    char buffer[16]; // Buffer para armazenar a string da energia (ex: "12345 kWh")
-
-    // Limpa a área onde a energia será exibida para evitar lixo de leituras anteriores
-    glcd_write_string("               ", 0, 0); // Limpa a linha 1 inteira (15 espaços)
-    
-    // Exibe o texto "ENERGIA:"
-    glcd_write_string("ENERGIA:", 0, 0); 
-    
-    // Converte energia ADC para TeV (0 a 14 TeV)
-    int energia_TeV = (energ * 14) / 1023;
-
-    sprintf(buffer, "%d TEV", energia_TeV);
-    glcd_write_string(buffer, 1, 0);
-
-    
     __delay_ms(100); 
 }
