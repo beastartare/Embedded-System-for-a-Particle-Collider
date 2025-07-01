@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 // CONFIGURAÇÃO DOS PINOS
-// Certifique-se de que estes pinos correspondem ao seu esquema no Proteus e PIC
+
 #define GLCD_DATA_PORT      PORTD
 #define GLCD_DATA_TRIS      TRISD
 
