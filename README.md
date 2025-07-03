@@ -43,3 +43,46 @@ Depending on the values of the temperature and radiation sensors, one of the fol
 - **Unidentified Event**
   - Conditions do not match either of the above
 
+# Portuguese Version
+## Visão Geral
+Este projeto é uma simulação de um colisor de partículas, inspirado no Grande Colisor de Hádrons (LHC) do CERN. O objetivo é emular, por meio de sensores e sistemas embarcados, o processo de aceleração de partículas, colisão e análise de resultados.
+
+## O que é um Colisor de Partículas?
+Um colisor de partículas é um dispositivo que acelera feixes de partículas em direções opostas utilizando campos elétricos e magnéticos. Quando esses feixes colidem, grandes quantidades de energia são liberadas, permitindo que os físicos testem teorias e descubram novas partículas, como o bóson de Higgs.
+
+## Estrutura do Projeto
+### Etapas da Simulação:
+- Detecção de partículas prontas para serem aceleradas.
+- Entrada nos pré-aceleradores.
+- Ao atingir a energia-alvo, as partículas entram no LHC.
+- Colisão e exibição dos resultados.
+
+### Entradas:
+- Sensor de Detecção do Feixe de Partículas 1  
+- Sensor de Detecção do Feixe de Partículas 2  
+- Botão de Emergência  
+- Sensor de Energia (analógico)  
+- Sensor de Radiação (analógico)  
+- Sensor de Temperatura (analógico)  
+
+### Saídas:
+- Display Gráfico LCD  
+- LED do Pré-Acelerador  
+- LED do LHC  
+- LED de Colisão  
+- LED de Emergência  
+
+## Resultados da Colisão
+
+Dependendo dos valores dos sensores de temperatura e radiação, um dos seguintes resultados é exibido:
+
+- **Bóson de Higgs Detectado**
+  - Temperatura ≥ 120  
+  - Radiação ≥ 40%
+
+- **Partícula Leve Detectada**
+  - Temperatura < 120  
+  - Radiação < 40%
+
+- **Evento Não Identificado**
+  - As condições não correspondem a nenhuma das anteriores
