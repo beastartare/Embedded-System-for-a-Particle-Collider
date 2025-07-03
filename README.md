@@ -9,8 +9,8 @@ A particle collider is a device that accelerates beams of particles in opposite 
 ## Project Structure
 ### Simulation Steps:
 - Detection of particles ready to be accelerated.
-- Entry into pre-accelerators.
-- When reaching target energy, particles enter the LHC.
+- Entry into the pre-accelerators. (Energy potentiometer ≥ 60%)
+- When reaching target energy, particles enter the LHC. (Energy potentiometer ≥ 80%)
 - Collision and display of results.
 
 ### Inputs:
@@ -53,8 +53,8 @@ Um colisor de partículas é um dispositivo que acelera feixes de partículas em
 ## Estrutura do Projeto
 ### Etapas da Simulação:
 - Detecção de partículas prontas para serem aceleradas.
-- Entrada nos pré-aceleradores.
-- Ao atingir a energia-alvo, as partículas entram no LHC.
+- Entrada nos pré-aceleradores. (Potenciômetro da energia ≥ 60%)
+- Ao atingir a energia-alvo, as partículas entram no LHC. (Potenciômetro da energia ≥ 80%)
 - Colisão e exibição dos resultados.
 
 ### Entradas:
